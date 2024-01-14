@@ -32,41 +32,42 @@ type LoginVerifyRequest struct {
 	Code string `json:"code"`
 }
 
+type UserContact struct {
+	Value    string `json:"value"`
+	Verified bool   `json:"verified"`
+}
+
+type LoginVerifyData struct {
+	Name     string      `json:"name"`
+	Phone    UserContact `json:"phone"`
+	Email    UserContact `json:"email"`
+	LogID    string      `json:"log_id"`
+	Networks struct {
+		Count int `json:"count"`
+		Data  []struct {
+			URL     string    `json:"url"`
+			Name    string    `json:"name"`
+			Created time.Time `json:"created"`
+		} `json:"data"`
+	} `json:"networks"`
+	Role          string `json:"role"`
+	CanTransfer   bool   `json:"can_transfer"`
+	IsProOwner    bool   `json:"is_pro_owner"`
+	PremiumStatus string `json:"premium_status"`
+	PushSettings  struct {
+		NetworkOffline bool `json:"networkOffline"`
+		NodeOffline    bool `json:"nodeOffline"`
+	} `json:"push_settings"`
+	TrustCertificatesEtag string `json:"trust_certificates_etag"`
+}
+
 // LoginVerifyResponse Returns details about your network
 type LoginVerifyResponse struct {
 	Meta struct {
 		Code       int       `json:"code"`
 		ServerTime time.Time `json:"server_time"`
 	} `json:"meta"`
-	Data struct {
-		Name  string `json:"name"`
-		Phone struct {
-			Value    string `json:"value"`
-			Verified bool   `json:"verified"`
-		} `json:"phone"`
-		Email struct {
-			Value    string `json:"value"`
-			Verified bool   `json:"verified"`
-		} `json:"email"`
-		LogID    string `json:"log_id"`
-		Networks struct {
-			Count int `json:"count"`
-			Data  []struct {
-				URL     string    `json:"url"`
-				Name    string    `json:"name"`
-				Created time.Time `json:"created"`
-			} `json:"data"`
-		} `json:"networks"`
-		Role          string `json:"role"`
-		CanTransfer   bool   `json:"can_transfer"`
-		IsProOwner    bool   `json:"is_pro_owner"`
-		PremiumStatus string `json:"premium_status"`
-		PushSettings  struct {
-			NetworkOffline bool `json:"networkOffline"`
-			NodeOffline    bool `json:"nodeOffline"`
-		} `json:"push_settings"`
-		TrustCertificatesEtag string `json:"trust_certificates_etag"`
-	} `json:"data"`
+	Data LoginVerifyData `json:"data"`
 }
 
 // LogoutResponse session logout
@@ -77,51 +78,64 @@ type LogoutResponse struct {
 	} `json:"meta"`
 }
 
+type Meta struct {
+	Code       int       `json:"code"`
+	ServerTime time.Time `json:"server_time"`
+}
+
+type NetworkConnectivity struct {
+	RxBitrate string  `json:"rx_bitrate"`
+	Signal    string  `json:"signal"`
+	SignalAvg string  `json:"signal_avg"`
+	Score     float64 `json:"score"`
+	ScoreBars int     `json:"score_bars"`
+}
+
+type NetworkProfile struct {
+	URL    string `json:"url"`
+	Name   string `json:"name"`
+	Paused bool   `json:"paused"`
+}
+
+type Source struct {
+	Location string `json:"location"`
+}
+
+type NetworkInterface struct {
+	Frequency     string `json:"frequency"`
+	FrequencyUnit string `json:"frequency_unit"`
+}
+
+type Usage struct {
+	DownMbps float64 `json:"down_mbps"`
+	UpMbps   float64 `json:"up_mbps"`
+}
+type NetworkData struct {
+	URL            string              `json:"url"`
+	Mac            string              `json:"mac"`
+	Eui64          string              `json:"eui64"`
+	Manufacturer   string              `json:"manufacturer"`
+	IP             string              `json:"ip"`
+	Ips            []string            `json:"ips"`
+	Nickname       interface{}         `json:"nickname"`
+	Hostname       string              `json:"hostname"`
+	Connected      bool                `json:"connected"`
+	Wireless       bool                `json:"wireless"`
+	ConnectionType string              `json:"connection_type"`
+	Source         Source              `json:"source"`
+	LastActive     time.Time           `json:"last_active"`
+	FirstActive    time.Time           `json:"first_active"`
+	Connectivity   NetworkConnectivity `json:"connectivity"`
+	Interface      NetworkInterface    `json:"interface"`
+	Usage          Usage               `json:"usage"`
+	Profile        NetworkProfile      `json:"profile"`
+	DeviceType     string              `json:"device_type"`
+}
+
 // NetworkDeviceResponse Details about devices on network
 type NetworkDeviceResponse struct {
-	Meta struct {
-		Code       int       `json:"code"`
-		ServerTime time.Time `json:"server_time"`
-	} `json:"meta"`
-	Data []struct {
-		URL            string      `json:"url"`
-		Mac            string      `json:"mac"`
-		Eui64          string      `json:"eui64"`
-		Manufacturer   string      `json:"manufacturer"`
-		IP             string      `json:"ip"`
-		Ips            []string    `json:"ips"`
-		Nickname       interface{} `json:"nickname"`
-		Hostname       string      `json:"hostname"`
-		Connected      bool        `json:"connected"`
-		Wireless       bool        `json:"wireless"`
-		ConnectionType string      `json:"connection_type"`
-		Source         struct {
-			Location string `json:"location"`
-		} `json:"source"`
-		LastActive   time.Time `json:"last_active"`
-		FirstActive  time.Time `json:"first_active"`
-		Connectivity struct {
-			RxBitrate string  `json:"rx_bitrate"`
-			Signal    string  `json:"signal"`
-			SignalAvg string  `json:"signal_avg"`
-			Score     float64 `json:"score"`
-			ScoreBars int     `json:"score_bars"`
-		} `json:"connectivity"`
-		Interface struct {
-			Frequency     string `json:"frequency"`
-			FrequencyUnit string `json:"frequency_unit"`
-		} `json:"interface"`
-		Usage struct {
-			DownMbps float64 `json:"down_mbps"`
-			UpMbps   float64 `json:"up_mbps"`
-		} `json:"usage"`
-		Profile struct {
-			URL    string `json:"url"`
-			Name   string `json:"name"`
-			Paused bool   `json:"paused"`
-		} `json:"profile"`
-		DeviceType string `json:"device_type"`
-	} `json:"data"`
+	Meta Meta          `json:"meta"`
+	Data []NetworkData `json:"data"`
 }
 
 type EeroConfiguration struct {
