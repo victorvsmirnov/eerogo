@@ -37,45 +37,43 @@ type UserContact struct {
 	Verified bool   `json:"verified"`
 }
 
+type NetworkBriefData struct {
+	URL     string    `json:"url"`
+	Name    string    `json:"name"`
+	Created time.Time `json:"created"`
+}
+
 type LoginVerifyData struct {
 	Name     string      `json:"name"`
 	Phone    UserContact `json:"phone"`
 	Email    UserContact `json:"email"`
 	LogID    string      `json:"log_id"`
 	Networks struct {
-		Count int `json:"count"`
-		Data  []struct {
-			URL     string    `json:"url"`
-			Name    string    `json:"name"`
-			Created time.Time `json:"created"`
-		} `json:"data"`
+		Count int                `json:"count"`
+		Data  []NetworkBriefData `json:"data"`
 	} `json:"networks"`
-	Role          string `json:"role"`
-	CanTransfer   bool   `json:"can_transfer"`
-	IsProOwner    bool   `json:"is_pro_owner"`
-	PremiumStatus string `json:"premium_status"`
-	PushSettings  struct {
-		NetworkOffline bool `json:"networkOffline"`
-		NodeOffline    bool `json:"nodeOffline"`
-	} `json:"push_settings"`
-	TrustCertificatesEtag string `json:"trust_certificates_etag"`
+	Role                  string       `json:"role"`
+	CanTransfer           bool         `json:"can_transfer"`
+	IsProOwner            bool         `json:"is_pro_owner"`
+	PremiumStatus         string       `json:"premium_status"`
+	PushSettings          PushSettings `json:"push_settings"`
+	TrustCertificatesEtag string       `json:"trust_certificates_etag"`
+}
+
+type PushSettings struct {
+	NetworkOffline bool `json:"networkOffline"`
+	NodeOffline    bool `json:"nodeOffline"`
 }
 
 // LoginVerifyResponse Returns details about your network
 type LoginVerifyResponse struct {
-	Meta struct {
-		Code       int       `json:"code"`
-		ServerTime time.Time `json:"server_time"`
-	} `json:"meta"`
+	Meta Meta            `json:"meta"`
 	Data LoginVerifyData `json:"data"`
 }
 
 // LogoutResponse session logout
 type LogoutResponse struct {
-	Meta struct {
-		Code       int       `json:"code"`
-		ServerTime time.Time `json:"server_time"`
-	} `json:"meta"`
+	Meta Meta `json:"meta"`
 }
 
 type Meta struct {
@@ -106,7 +104,7 @@ type NetworkInterface struct {
 	FrequencyUnit string `json:"frequency_unit"`
 }
 
-type Usage struct {
+type NetworkUsage struct {
 	DownMbps float64 `json:"down_mbps"`
 	UpMbps   float64 `json:"up_mbps"`
 }
@@ -127,7 +125,7 @@ type NetworkData struct {
 	FirstActive    time.Time           `json:"first_active"`
 	Connectivity   NetworkConnectivity `json:"connectivity"`
 	Interface      NetworkInterface    `json:"interface"`
-	Usage          Usage               `json:"usage"`
+	Usage          NetworkUsage        `json:"usage"`
 	Profile        NetworkProfile      `json:"profile"`
 	DeviceType     string              `json:"device_type"`
 }
