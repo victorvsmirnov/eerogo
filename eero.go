@@ -252,7 +252,7 @@ func (e *EeroClient) do(method string, url string, reqObj interface{}, respObj i
 	defer r.Body.Close()
 
 	if r.StatusCode != 200 {
-		return fmt.Errorf("Request failed: (%d) - %s\nURL: %s %s\nRequest: %s", r.StatusCode, r.Status, method, url, reqObj)
+		return fmt.Errorf("request failed: (%d) - %s\nURL: %s %s\nRequest: %s", r.StatusCode, r.Status, method, url, reqObj)
 	}
 	if r.Body == nil && respObj == nil {
 		return nil
