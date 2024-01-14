@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/pkg/errors"
+	// "github.com/pkg/errors"
 )
 
 // LoginRequest is use to login to Eero. Set the account email address
@@ -125,29 +124,42 @@ type NetworkDeviceResponse struct {
 	} `json:"data"`
 }
 
-func login(loginID *string) string {
-	fmt.Printf("Login: %s\n", *loginID)
-	url := "https://api-user.e2ro.com/2.2/login?"
-
-	loginRequest := LoginRequest{Login: *loginID}
-	var loginResponse LoginResponse
-
-	err := doRequest(url, nil, &loginRequest, &loginResponse)
-	//r, err := http.Post("https://api-user.e2ro.com/2.2/login?", "application/json; charset=utf-8", b)
-	if err != nil {
-		panic(err)
-	}
-
-	return loginResponse.Data.UserToken
+type EeroConfiguration struct {
+	Login          string
+	CookieFileName string
+	URL            string // https://api-user.e2ro.com / https://api-user.e2ro.com/2.2/
 }
 
-func verifyKey(verificationKey *string, sessionKey *string) string {
-	fmt.Printf("Verify: %s, %s\n", *verificationKey, *sessionKey)
+type EeroClient struct {
+	httpClient *http.Client
+	config     EeroConfiguration
+	userToken  string
+}
 
-	verifyRequest := LoginVerifyRequest{Code: *verificationKey}
+func (e *EeroClient) Login() (err error) {
+	fmt.Printf("Login: %s\n", e.config.Login)
+	// url := "https://api-user.e2ro.com/2.2/login?"
+
+	loginRequest := LoginRequest{Login: e.config.Login}
+	var loginResponse LoginResponse
+
+	err = e.do("POST", "login", &loginRequest, &loginResponse)
+	//r, err := http.Post("https://api-user.e2ro.com/2.2/login?", "application/json; charset=utf-8", b)
+	if err != nil {
+		return err
+	}
+	// if loginResponse.Meta.Code?
+	e.userToken = loginResponse.Data.UserToken
+	return nil
+}
+
+func (e *EeroClient) verifyKey(verificationKey string) string {
+	// fmt.Printf("Verify: %s, %s\n", *verificationKey, *sessionKey)
+
+	verifyRequest := LoginVerifyRequest{Code: verificationKey}
 	var verifyResponse LoginVerifyResponse
-	url := "https://api-user.e2ro.com/2.2/login/verify?"
-	err := doRequest(url, sessionKey, &verifyRequest, &verifyResponse)
+	// url := "https://api-user.e2ro.com/2.2/login/verify?"
+	err := e.do("POST", "login/verify", &verifyRequest, &verifyResponse)
 
 	if err != nil {
 		panic(err)
@@ -162,42 +174,41 @@ func verifyKey(verificationKey *string, sessionKey *string) string {
 	return ""
 }
 
-func monitor(sessionKey *string, networkID *string) {
-	fmt.Printf("Monitoring Network: %s\n", *networkID)
-	url := fmt.Sprintf("https://api-user.e2ro.com%s/devices?thread=true", *networkID)
-	fmt.Printf("URL: %s\n", url)
+// func monitor(sessionKey *string, networkID *string) {
+// 	fmt.Printf("Monitoring Network: %s\n", *networkID)
+// 	url := fmt.Sprintf("https://api-user.e2ro.com%s/devices?thread=true", *networkID)
+// 	fmt.Printf("URL: %s\n", url)
 
-	// TODO: Query /2.2/networks/[NETWORK_ID]/burst_reporters?
-	// to schedule next time to query usage
+// 	// TODO: Query /2.2/networks/[NETWORK_ID]/burst_reporters?
+// 	// to schedule next time to query usage
 
-	for {
-		var networkDeviceResponse NetworkDeviceResponse
-		err := doRequest(url, sessionKey, nil, &networkDeviceResponse)
+// 	for {
+// 		var networkDeviceResponse NetworkDeviceResponse
+// 		err := doRequest(url, sessionKey, nil, &networkDeviceResponse)
 
-		if err != nil {
-			panic(err)
-		}
+// 		if err != nil {
+// 			panic(err)
+// 		}
 
-		networks := networkDeviceResponse.Data
-		foundResult := false
-		for _, device := range networks {
-			up := device.Usage.UpMbps
-			down := device.Usage.DownMbps
-			if up > 0 || down > 0 {
-				foundResult = true
-				fmt.Printf("%s - %s (%f Mbps, %f Mbps)\n", device.Hostname, device.DeviceType, device.Usage.DownMbps, device.Usage.UpMbps)
-			}
-		}
+// 		networks := networkDeviceResponse.Data
+// 		foundResult := false
+// 		for _, device := range networks {
+// 			up := device.Usage.UpMbps
+// 			down := device.Usage.DownMbps
+// 			if up > 0 || down > 0 {
+// 				foundResult = true
+// 				fmt.Printf("%s - %s (%f Mbps, %f Mbps)\n", device.Hostname, device.DeviceType, device.Usage.DownMbps, device.Usage.UpMbps)
+// 			}
+// 		}
 
-		if foundResult {
-			fmt.Printf("\n\n\n\n")
-		}
-		time.Sleep(60 * time.Second)
-	}
-}
+// 		if foundResult {
+// 			fmt.Printf("\n\n\n\n")
+// 		}
+// 		time.Sleep(60 * time.Second)
+// 	}
+// }
 
-func doRequest(url string, token *string, reqObj interface{}, respObj interface{}) error {
-	method := "GET"
+func (e *EeroClient) do(method string, url string, reqObj interface{}, respObj interface{}) error {
 
 	b := new(bytes.Buffer)
 	if reqObj != nil {
@@ -214,32 +225,26 @@ func doRequest(url string, token *string, reqObj interface{}, respObj interface{
 	}
 
 	req.Header.Add("Accept", "application/json")
-
-	if token != nil {
-		sessionString := fmt.Sprintf("s=%s", *token)
+	if e.userToken == "" {
+		// sessionString := fmt.Sprintf("s=%s", *token)
 		//fmt.Printf("Session Key: %s\n", sessionString)
-		req.Header.Add("Cookie", sessionString)
+		req.Header.Add("Cookie", fmt.Sprintf("s=%s", e.userToken))
 	}
-
 	if req != nil {
 		req.Header.Add("Content-Type", "application/json")
 	}
-
 	r, err := client.Do(req)
 	if err != nil {
 		return err
 	}
-
 	defer r.Body.Close()
 
 	if r.StatusCode != 200 {
-		return errors.Errorf("Request failed: (%d) - %s\nURL: %s %s\nRequest: %s", r.StatusCode, r.Status, method, url, reqObj)
+		return fmt.Errorf("Request failed: (%d) - %s\nURL: %s %s\nRequest: %s", r.StatusCode, r.Status, method, url, reqObj)
 	}
-
 	if r.Body == nil && respObj == nil {
 		return nil
 	}
-
 	err = json.NewDecoder(r.Body).Decode(respObj)
 	if err != nil {
 		return err
