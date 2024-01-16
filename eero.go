@@ -19,133 +19,6 @@ func NewEeroClient(c EeroConfiguration) *EeroClient {
 	}
 }
 
-// LoginRequest is use to login to Eero. Set the account email address
-type LoginRequest struct {
-	Login string `json:"login"`
-}
-
-// LoginResponse response to the login request
-// user_token will be used as `Cookie: s={{user_token}}`
-// Code looks similar to the HTTP response code
-type LoginResponse struct {
-	Meta struct {
-		Code       int       `json:"code"`
-		ServerTime time.Time `json:"server_time"`
-	} `json:"meta"`
-	Data struct {
-		UserToken string `json:"user_token"`
-	} `json:"data"`
-}
-
-// LoginVerifyRequest sends the code from email
-type LoginVerifyRequest struct {
-	Code string `json:"code"`
-}
-
-type UserContact struct {
-	Value    string `json:"value"`
-	Verified bool   `json:"verified"`
-}
-
-type NetworkBriefData struct {
-	URL     string    `json:"url"`
-	Name    string    `json:"name"`
-	Created time.Time `json:"created"`
-}
-
-type LoginVerifyData struct {
-	Name     string      `json:"name"`
-	Phone    UserContact `json:"phone"`
-	Email    UserContact `json:"email"`
-	LogID    string      `json:"log_id"`
-	Networks struct {
-		Count int                `json:"count"`
-		Data  []NetworkBriefData `json:"data"`
-	} `json:"networks"`
-	Role                  string       `json:"role"`
-	CanTransfer           bool         `json:"can_transfer"`
-	IsProOwner            bool         `json:"is_pro_owner"`
-	PremiumStatus         string       `json:"premium_status"`
-	PushSettings          PushSettings `json:"push_settings"`
-	TrustCertificatesEtag string       `json:"trust_certificates_etag"`
-}
-
-type PushSettings struct {
-	NetworkOffline bool `json:"networkOffline"`
-	NodeOffline    bool `json:"nodeOffline"`
-}
-
-// LoginVerifyResponse Returns details about your network
-type LoginVerifyResponse struct {
-	Meta Meta            `json:"meta"`
-	Data LoginVerifyData `json:"data"`
-}
-
-// LogoutResponse session logout
-type LogoutResponse struct {
-	Meta Meta `json:"meta"`
-}
-
-type Meta struct {
-	Code       int       `json:"code"`
-	ServerTime time.Time `json:"server_time"`
-}
-
-type NetworkConnectivity struct {
-	RxBitrate string  `json:"rx_bitrate"`
-	Signal    string  `json:"signal"`
-	SignalAvg string  `json:"signal_avg"`
-	Score     float64 `json:"score"`
-	ScoreBars int     `json:"score_bars"`
-}
-
-type NetworkProfile struct {
-	URL    string `json:"url"`
-	Name   string `json:"name"`
-	Paused bool   `json:"paused"`
-}
-
-type Source struct {
-	Location string `json:"location"`
-}
-
-type NetworkInterface struct {
-	Frequency     string `json:"frequency"`
-	FrequencyUnit string `json:"frequency_unit"`
-}
-
-type NetworkUsage struct {
-	DownMbps float64 `json:"down_mbps"`
-	UpMbps   float64 `json:"up_mbps"`
-}
-type NetworkData struct {
-	URL            string              `json:"url"`
-	Mac            string              `json:"mac"`
-	Eui64          string              `json:"eui64"`
-	Manufacturer   string              `json:"manufacturer"`
-	IP             string              `json:"ip"`
-	Ips            []string            `json:"ips"`
-	Nickname       interface{}         `json:"nickname"`
-	Hostname       string              `json:"hostname"`
-	Connected      bool                `json:"connected"`
-	Wireless       bool                `json:"wireless"`
-	ConnectionType string              `json:"connection_type"`
-	Source         Source              `json:"source"`
-	LastActive     time.Time           `json:"last_active"`
-	FirstActive    time.Time           `json:"first_active"`
-	Connectivity   NetworkConnectivity `json:"connectivity"`
-	Interface      NetworkInterface    `json:"interface"`
-	Usage          NetworkUsage        `json:"usage"`
-	Profile        NetworkProfile      `json:"profile"`
-	DeviceType     string              `json:"device_type"`
-}
-
-// NetworkDeviceResponse Details about devices on network
-type NetworkDeviceResponse struct {
-	Meta Meta          `json:"meta"`
-	Data []NetworkData `json:"data"`
-}
-
 type EeroConfiguration struct {
 	Login          string
 	CookieFileName string
@@ -153,9 +26,10 @@ type EeroConfiguration struct {
 }
 
 type EeroClient struct {
-	httpClient *http.Client
-	config     EeroConfiguration
-	userToken  string
+	httpClient      *http.Client
+	config          EeroConfiguration
+	userToken       string
+	LoginVerifyData LoginVerifyData
 }
 
 func (e *EeroClient) Login() (err error) {
@@ -199,6 +73,15 @@ func (e *EeroClient) LoginRefresh() error {
 	return nil
 }
 
+func (e *EeroClient) Account() (*AccountResponse, error) {
+	var response AccountResponse
+	err := e.do("GET", "account", nil, &response)
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
 func (e *EeroClient) VerifyKey(verificationKey string) error {
 	verifyRequest := LoginVerifyRequest{Code: verificationKey}
 	var verifyResponse LoginVerifyResponse
@@ -207,7 +90,7 @@ func (e *EeroClient) VerifyKey(verificationKey string) error {
 	if err != nil {
 		return err
 	}
-
+	e.LoginVerifyData = verifyResponse.Data
 	//fmt.Println(verifyResponse)
 	return nil
 }
