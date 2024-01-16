@@ -1,13 +1,24 @@
-package main
+package eerogo
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 	// "github.com/pkg/errors"
 )
+
+func NewEeroClient(c EeroConfiguration) *EeroClient {
+	return &EeroClient{
+		httpClient: &http.Client{
+			Timeout: time.Second * 10,
+		},
+		config:    c,
+		userToken: "",
+	}
+}
 
 // LoginRequest is use to login to Eero. Set the account email address
 type LoginRequest struct {
@@ -149,13 +160,13 @@ type EeroClient struct {
 }
 
 func (e *EeroClient) Login() (err error) {
-	fmt.Printf("Login: %s\n", e.config.Login)
+	// fmt.Printf("Login: %s\n", e.config.Login)
 	// url := "https://api-user.e2ro.com/2.2/login?"
 
 	loginRequest := LoginRequest{Login: e.config.Login}
 	var loginResponse LoginResponse
 
-	err = e.do("POST", "login", &loginRequest, &loginResponse)
+	err = e.do("POST", "login?", &loginRequest, &loginResponse)
 	//r, err := http.Post("https://api-user.e2ro.com/2.2/login?", "application/json; charset=utf-8", b)
 	if err != nil {
 		return err
@@ -165,7 +176,14 @@ func (e *EeroClient) Login() (err error) {
 	return nil
 }
 
-func (e *EeroClient) verifyKey(verificationKey string) string {
+func (e *EeroClient) SaveCookie() error {
+	if e.userToken == "" {
+		return fmt.Errorf("client not authenticated")
+	}
+	return os.WriteFile(e.config.CookieFileName, []byte(e.userToken), 0600)
+}
+
+func (e *EeroClient) VerifyKey(verificationKey string) error {
 	// fmt.Printf("Verify: %s, %s\n", *verificationKey, *sessionKey)
 
 	verifyRequest := LoginVerifyRequest{Code: verificationKey}
@@ -174,16 +192,11 @@ func (e *EeroClient) verifyKey(verificationKey string) string {
 	err := e.do("POST", "login/verify", &verifyRequest, &verifyResponse)
 
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	//fmt.Println(verifyResponse)
-
-	networks := verifyResponse.Data.Networks.Data
-	for _, network := range networks {
-		fmt.Printf("%s - %s\n", network.Name, network.URL)
-	}
-	return ""
+	return nil
 }
 
 // func monitor(sessionKey *string, networkID *string) {
@@ -224,20 +237,18 @@ func (e *EeroClient) do(method string, url string, reqObj interface{}, respObj i
 
 	b := new(bytes.Buffer)
 	if reqObj != nil {
-		method = "POST"
 		json.NewEncoder(b).Encode(reqObj)
 	} else {
 		b = nil
 	}
 
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, b)
+	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", e.config.URL, url), b)
 	if err != nil {
 		return err
 	}
 
 	req.Header.Add("Accept", "application/json")
-	if e.userToken == "" {
+	if e.userToken != "" {
 		// sessionString := fmt.Sprintf("s=%s", *token)
 		//fmt.Printf("Session Key: %s\n", sessionString)
 		req.Header.Add("Cookie", fmt.Sprintf("s=%s", e.userToken))
@@ -245,13 +256,13 @@ func (e *EeroClient) do(method string, url string, reqObj interface{}, respObj i
 	if req != nil {
 		req.Header.Add("Content-Type", "application/json")
 	}
-	r, err := client.Do(req)
+	r, err := e.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer r.Body.Close()
 
-	if r.StatusCode != 200 {
+	if r.StatusCode != 200 && r.StatusCode != 401 {
 		return fmt.Errorf("request failed: (%d) - %s\nURL: %s %s\nRequest: %s", r.StatusCode, r.Status, method, url, reqObj)
 	}
 	if r.Body == nil && respObj == nil {
