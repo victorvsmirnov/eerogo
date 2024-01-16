@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-	// "github.com/pkg/errors"
 )
 
 func NewEeroClient(c EeroConfiguration) *EeroClient {
@@ -160,14 +159,10 @@ type EeroClient struct {
 }
 
 func (e *EeroClient) Login() (err error) {
-	// fmt.Printf("Login: %s\n", e.config.Login)
-	// url := "https://api-user.e2ro.com/2.2/login?"
-
 	loginRequest := LoginRequest{Login: e.config.Login}
 	var loginResponse LoginResponse
 
 	err = e.do("POST", "login?", &loginRequest, &loginResponse)
-	//r, err := http.Post("https://api-user.e2ro.com/2.2/login?", "application/json; charset=utf-8", b)
 	if err != nil {
 		return err
 	}
@@ -184,11 +179,8 @@ func (e *EeroClient) SaveCookie() error {
 }
 
 func (e *EeroClient) VerifyKey(verificationKey string) error {
-	// fmt.Printf("Verify: %s, %s\n", *verificationKey, *sessionKey)
-
 	verifyRequest := LoginVerifyRequest{Code: verificationKey}
 	var verifyResponse LoginVerifyResponse
-	// url := "https://api-user.e2ro.com/2.2/login/verify?"
 	err := e.do("POST", "login/verify", &verifyRequest, &verifyResponse)
 
 	if err != nil {
@@ -249,8 +241,6 @@ func (e *EeroClient) do(method string, url string, reqObj interface{}, respObj i
 
 	req.Header.Add("Accept", "application/json")
 	if e.userToken != "" {
-		// sessionString := fmt.Sprintf("s=%s", *token)
-		//fmt.Printf("Session Key: %s\n", sessionString)
 		req.Header.Add("Cookie", fmt.Sprintf("s=%s", e.userToken))
 	}
 	if req != nil {

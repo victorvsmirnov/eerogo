@@ -8,13 +8,7 @@ import (
 )
 
 func main() {
-
-	// sessionKey := flag.String("sessionKey", "", "Eero session key")
-	// loginID := flag.String("loginID", "", "Eero loginId")
 	config := flag.String("c", ".env", "Configuration file")
-	// verificationKey := flag.String("verificationKey", "", "Eero verification key")
-	// networkID := flag.String("networkID", "", "Network ID to monitor")
-	// command := flag.String("command", "monitor", "Actions to perform")
 	flag.Parse()
 	configuration := Config{}
 	err := eerogo.LoadViperConfiguration(*config, &configuration)
