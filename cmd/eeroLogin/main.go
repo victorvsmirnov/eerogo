@@ -37,5 +37,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	err = eeroclient.LoginRefresh()
+	if err != nil {
+		panic(err)
+	}
 
 }

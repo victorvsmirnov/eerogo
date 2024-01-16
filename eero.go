@@ -162,7 +162,7 @@ func (e *EeroClient) Login() (err error) {
 	loginRequest := LoginRequest{Login: e.config.Login}
 	var loginResponse LoginResponse
 
-	err = e.do("POST", "login?", &loginRequest, &loginResponse)
+	err = e.do("POST", "login", &loginRequest, &loginResponse)
 	if err != nil {
 		return err
 	}
@@ -186,6 +186,16 @@ func (e *EeroClient) LoadCookie() error {
 		return fmt.Errorf("cookie file is empty")
 	}
 	e.userToken = string(b)
+	return nil
+}
+
+func (e *EeroClient) LoginRefresh() error {
+	var response LoginResponse
+	err := e.do("POST", "login/refresh", nil, &response)
+	if err != nil {
+		return err
+	}
+	e.userToken = response.Data.UserToken
 	return nil
 }
 
@@ -241,9 +251,10 @@ func (e *EeroClient) do(method string, url string, reqObj interface{}, respObj i
 	b := new(bytes.Buffer)
 	if reqObj != nil {
 		json.NewEncoder(b).Encode(reqObj)
-	} else {
-		b = nil
 	}
+	// else {
+	// 	b = nil
+	// }
 
 	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", e.config.URL, url), b)
 	if err != nil {
