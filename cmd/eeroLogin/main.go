@@ -16,7 +16,10 @@ func main() {
 		panic(err)
 	}
 	eeroclient := eerogo.NewEeroClient(configuration.Eero)
-	err = eeroclient.Login()
+
+	err = eeroclient.LoadCookie()
+	if err != nil {
+		err = eeroclient.Login()
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +40,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	} else {
 	err = eeroclient.LoginRefresh()
+		if err != nil {
+			panic(err)
+		}
+	}
 	if err != nil {
 		panic(err)
 	}
