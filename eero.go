@@ -177,6 +177,17 @@ func (e *EeroClient) SaveCookie() error {
 	}
 	return os.WriteFile(e.config.CookieFileName, []byte(e.userToken), 0600)
 }
+func (e *EeroClient) LoadCookie() error {
+	b, err := os.ReadFile(e.config.CookieFileName)
+	if err != nil {
+		return err
+	}
+	if len(b) == 0 {
+		return fmt.Errorf("cookie file is empty")
+	}
+	e.userToken = string(b)
+	return nil
+}
 
 func (e *EeroClient) VerifyKey(verificationKey string) error {
 	verifyRequest := LoginVerifyRequest{Code: verificationKey}
