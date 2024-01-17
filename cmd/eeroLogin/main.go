@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 
@@ -52,5 +53,14 @@ func main() {
 	}
 	fmt.Printf("account: %v\n", account)
 	fmt.Printf("eeroclient: %v\n", eeroclient)
+
+	for url := range eeroclient.Cache.Networks {
+		network, err := eeroclient.Network(url)
+		if err != nil {
+			panic(err)
+		}
+		j,_:= json.Marshal(network)
+		fmt.Printf("network: %s\n", string(j))
+	}
 
 }
