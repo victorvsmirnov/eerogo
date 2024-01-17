@@ -96,8 +96,8 @@ func (e *EeroClient) Account() (*AccountResponse, error) {
 	return &response, nil
 }
 
-func (e *EeroClient) Network(url EeroURL) (any, error) {
-	var response any
+func (e *EeroClient) Network(url EeroURL) (*NetworkData, error) {
+	var response NetworkData
 	err := e.do("GET", url, nil, &response)
 	if err != nil {
 		return nil, err
