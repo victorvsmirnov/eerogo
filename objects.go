@@ -73,7 +73,7 @@ type NetworkConnectivity struct {
 }
 
 type NetworkProfile struct {
-	URL    Eero URL `json:"url"`
+	URL    EeroURL `json:"url"`
 	Name   string  `json:"name"`
 	Paused bool    `json:"paused"`
 }
@@ -147,7 +147,7 @@ type AccountNetworkData struct {
 	URL              EeroURL   `json:"url"`
 }
 type AccountNetworks struct {
-	Count int           `json:"count"`
+	Count int                  `json:"count"`
 	Data  []AccountNetworkData `json:"data"`
 }
 type Phone struct {
@@ -171,34 +171,33 @@ type PushSettings struct {
 }
 
 type AccountData struct {
-	Auth                      Auth           `json:"auth"`
-	BusinessDetails           any            `json:"business_details"`
-	CanMigrateToAmazonLogin   bool           `json:"can_migrate_to_amazon_login"`
-	CanTransfer               bool           `json:"can_transfer"`
-	Consents                  Consents       `json:"consents"`
-	EeroForBusiness           bool           `json:"eero_for_business"`
-	Email                     Email          `json:"email"`
-	ImageAssets               any            `json:"image_assets"`
-	IsBetaBugReporterEligible bool           `json:"is_beta_bug_reporter_eligible"`
-	IsPremiumCapable          bool           `json:"is_premium_capable"`
-	LogID                     string         `json:"log_id"`
-	MduProgram                bool           `json:"mdu_program"`
-	Name                      string         `json:"name"`
-	Networks                  AccountNetworks       `json:"networks"`
-	OrganizationID            any            `json:"organization_id"`
-	PaymentFailed             bool           `json:"payment_failed"`
-	Phone                     Phone          `json:"phone"`
-	PremiumDetails            PremiumDetails `json:"premium_details"`
-	PremiumStatus             string         `json:"premium_status"`
-	PushSettings              PushSettings   `json:"push_settings"`
-	Role                      string         `json:"role"`
-	TrustCertificatesEtag     string         `json:"trust_certificates_etag"`
+	Auth                      Auth            `json:"auth"`
+	BusinessDetails           any             `json:"business_details"`
+	CanMigrateToAmazonLogin   bool            `json:"can_migrate_to_amazon_login"`
+	CanTransfer               bool            `json:"can_transfer"`
+	Consents                  Consents        `json:"consents"`
+	EeroForBusiness           bool            `json:"eero_for_business"`
+	Email                     Email           `json:"email"`
+	ImageAssets               any             `json:"image_assets"`
+	IsBetaBugReporterEligible bool            `json:"is_beta_bug_reporter_eligible"`
+	IsPremiumCapable          bool            `json:"is_premium_capable"`
+	LogID                     string          `json:"log_id"`
+	MduProgram                bool            `json:"mdu_program"`
+	Name                      string          `json:"name"`
+	Networks                  AccountNetworks `json:"networks"`
+	OrganizationID            any             `json:"organization_id"`
+	PaymentFailed             bool            `json:"payment_failed"`
+	Phone                     Phone           `json:"phone"`
+	PremiumDetails            PremiumDetails  `json:"premium_details"`
+	PremiumStatus             string          `json:"premium_status"`
+	PushSettings              PushSettings    `json:"push_settings"`
+	Role                      string          `json:"role"`
+	TrustCertificatesEtag     string          `json:"trust_certificates_etag"`
 }
 type Meta struct {
 	Code       int       `json:"code"`
 	ServerTime time.Time `json:"server_time"`
 }
-
 
 type NetworkData struct {
 	Data struct {
