@@ -1146,3 +1146,21 @@ type NetworkData struct {
 		ServerTime time.Time `json:"server_time"`
 	} `json:"meta"`
 }
+
+type NetworkClientsResponse struct {
+	Data []NetworkClientData `json:"data"`
+	Meta struct {
+		Code       int       `json:"code"`
+		ServerTime time.Time `json:"server_time"`
+	} `json:"meta"`
+}
+
+type NetworkClientData struct {
+	Eui64     string   `json:"eui64"`
+	Hostname  string   `json:"hostname"`
+	IP        string   `json:"ip"`
+	Ips       []string `json:"ips"`
+	IsGuest   bool     `json:"is_guest"`
+	IsPrivate bool     `json:"is_private"`
+	Mac       string   `json:"mac"`
+}

@@ -104,6 +104,14 @@ func (e *EeroClient) Network(url EeroURL) (*NetworkData, error) {
 	}
 	return &response, nil
 }
+func (e *EeroClient) NetworkClients(url EeroURL) (*NetworkClientsResponse, error) {
+	var response NetworkClientsResponse
+	err := e.do("GET", url, nil, &response)
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
 
 func (e *EeroClient) VerifyKey(verificationKey string) error {
 	verifyRequest := LoginVerifyRequest{Code: verificationKey}
