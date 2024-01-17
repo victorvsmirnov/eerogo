@@ -844,8 +844,8 @@ type NetworkData struct {
 			} `json:"wpa3"`
 		} `json:"capabilities"`
 		Clients struct {
-			Count int    `json:"count"`
-			URL   string `json:"url"`
+			Count int     `json:"count"`
+			URL   EeroURL `json:"url"`
 		} `json:"clients"`
 		Connection struct {
 			Mode string `json:"mode"`
