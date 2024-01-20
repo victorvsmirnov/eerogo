@@ -44,11 +44,40 @@ type EeroClient struct {
 	Cache           *EeroCache
 }
 
+func (eeroclient *EeroClient) LoginSequence(verificationInputFunc func() (string, error)) (err error) {
+	err = eeroclient.LoadCookie()
+	if err != nil {
+		err = eeroclient.Login()
+		if err != nil {
+			return err
+		}
+		verificationKey, err := verificationInputFunc()
+		if err != nil {
+			return err
+		}
+
+		eeroclient.VerifyKey(verificationKey)
+		if err != nil {
+			return err
+		}
+		err = eeroclient.SaveCookie()
+		if err != nil {
+			return err
+		}
+	} else {
+		err = eeroclient.LoginRefresh()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (e *EeroClient) Login() (err error) {
 	loginRequest := LoginRequest{Login: e.config.Login}
 	var loginResponse LoginResponse
 
-	err = e.do("POST", "login", &loginRequest, &loginResponse)
+	err = e.do("POST", fmt.Sprintf("%s/login", APIVersion), &loginRequest, &loginResponse)
 	if err != nil {
 		return err
 	}
@@ -144,8 +173,7 @@ func (e *EeroClient) NetworkClients(id ResourceID) (*NetworkClientsResponse, err
 func (e *EeroClient) VerifyKey(verificationKey string) error {
 	verifyRequest := LoginVerifyRequest{Code: verificationKey}
 	var verifyResponse LoginVerifyResponse
-	err := e.do("POST", "login/verify", &verifyRequest, &verifyResponse)
-
+	err := e.do("POST", fmt.Sprintf("%s/login/verify", APIVersion), &verifyRequest, &verifyResponse)
 	if err != nil {
 		return err
 	}
