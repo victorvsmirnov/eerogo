@@ -1,2 +1,4 @@
 cmd/eeroLogin/.*
 .vscode/*
+networks.json
+clients.json
