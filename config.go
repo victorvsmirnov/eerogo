@@ -1,6 +1,5 @@
 package eerogo
 
-
 type EeroConfiguration struct {
 	Login          string
 	CookieFileName string
