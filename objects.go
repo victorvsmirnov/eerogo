@@ -31,7 +31,7 @@ type UserContact struct {
 }
 
 type NetworkBriefData struct {
-	URL     EeroURL   `json:"url"`
+	URL     string    `json:"url"`
 	Name    string    `json:"name"`
 	Created time.Time `json:"created"`
 }
@@ -73,9 +73,9 @@ type NetworkConnectivity struct {
 }
 
 type NetworkProfile struct {
-	URL    EeroURL `json:"url"`
-	Name   string  `json:"name"`
-	Paused bool    `json:"paused"`
+	URL    string `json:"url"`
+	Name   string `json:"name"`
+	Paused bool   `json:"paused"`
 }
 
 type Source struct {
@@ -92,7 +92,7 @@ type NetworkUsage struct {
 	UpMbps   float64 `json:"up_mbps"`
 }
 type NetworkDeviceData struct {
-	URL            EeroURL             `json:"url"`
+	URL            string              `json:"url"`
 	Mac            string              `json:"mac"`
 	Eui64          string              `json:"eui64"`
 	Manufacturer   string              `json:"manufacturer"`
@@ -144,7 +144,7 @@ type AccountNetworkData struct {
 	Created          time.Time `json:"created"`
 	Name             string    `json:"name"`
 	NicknameLabel    any       `json:"nickname_label"`
-	URL              EeroURL   `json:"url"`
+	URL              string    `json:"url"`
 }
 type AccountNetworks struct {
 	Count int                  `json:"count"`
@@ -844,8 +844,8 @@ type NetworkData struct {
 			} `json:"wpa3"`
 		} `json:"capabilities"`
 		Clients struct {
-			Count int     `json:"count"`
-			URL   EeroURL `json:"url"`
+			Count int    `json:"count"`
+			URL   string `json:"url"`
 		} `json:"clients"`
 		Connection struct {
 			Mode string `json:"mode"`

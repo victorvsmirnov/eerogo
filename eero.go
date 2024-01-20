@@ -6,18 +6,25 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 )
 
-type EeroURL string
+const APIVersion = "2.2"
+
+type ResourceID string
 
 type EeroCache struct {
-	Networks map[EeroURL]AccountNetworkData
+	Networks map[ResourceID]string
+}
+
+func (ec *EeroCache) Clear() {
+	ec.Networks = make(map[ResourceID]string)
 }
 
 func NewEeroClient(c EeroConfiguration) *EeroClient {
 	cache := EeroCache{
-		Networks: map[EeroURL]AccountNetworkData{},
+		Networks: map[ResourceID]string{},
 	}
 	return &EeroClient{
 		httpClient: &http.Client{
@@ -41,7 +48,7 @@ func (e *EeroClient) Login() (err error) {
 	loginRequest := LoginRequest{Login: e.config.Login}
 	var loginResponse LoginResponse
 
-	err = e.do("POST", "2.2/login", &loginRequest, &loginResponse)
+	err = e.do("POST", "login", &loginRequest, &loginResponse)
 	if err != nil {
 		return err
 	}
@@ -70,7 +77,7 @@ func (e *EeroClient) LoadCookie() error {
 
 func (e *EeroClient) LoginRefresh() error {
 	var response LoginResponse
-	err := e.do("POST", "2.2/login/refresh", nil, &response)
+	err := e.do("POST", fmt.Sprintf("%s/login/refresh", APIVersion), nil, &response)
 	if err != nil {
 		return err
 	}
@@ -78,19 +85,42 @@ func (e *EeroClient) LoginRefresh() error {
 	return nil
 }
 
+var urlReMap map[string]*regexp.Regexp = map[string]*regexp.Regexp{
+	"networks": regexp.MustCompile(`\/[\d\.]+\/networks\/(\d+)`),
+	"eeros":    regexp.MustCompile(`\/[\d\.]+\/eeros\/(\d+)`),
+}
+
+func extract_resource_id(url string) (ResourceID, error) {
+	for _, r := range urlReMap {
+		m := r.FindStringSubmatch(string(url))
+		if m != nil {
+			return ResourceID(m[1]), nil
+		}
+	}
+	return "", fmt.Errorf("unbale to extract id from %s", url)
+}
+
 func (e *EeroClient) Account() (*AccountResponse, error) {
 	var response AccountResponse
-	err := e.do("GET", "2.2/account", nil, &response)
+	err := e.do("GET", fmt.Sprintf("%s/account", APIVersion), nil, &response)
 	if err != nil {
 		return nil, err
 	}
 	for _, network := range response.Data.Networks.Data {
-		e.Cache.Networks[network.URL] = network
+		id, err := extract_resource_id(network.URL)
+		if err != nil {
+			return nil, err
+		}
+		e.Cache.Networks[id] = network.URL
 	}
 	return &response, nil
 }
 
-func (e *EeroClient) Network(url EeroURL) (*NetworkData, error) {
+func (e *EeroClient) Network(id ResourceID) (*NetworkData, error) {
+	url, ok := e.Cache.Networks[id]
+	if !ok {
+		return nil, fmt.Errorf("network id is not fould")
+	}
 	var response NetworkData
 	err := e.do("GET", url, nil, &response)
 	if err != nil {
@@ -98,9 +128,13 @@ func (e *EeroClient) Network(url EeroURL) (*NetworkData, error) {
 	}
 	return &response, nil
 }
-func (e *EeroClient) NetworkClients(url EeroURL) (*NetworkClientsResponse, error) {
+func (e *EeroClient) NetworkClients(id ResourceID) (*NetworkClientsResponse, error) {
+	url, ok := e.Cache.Networks[id]
+	if !ok {
+		return nil, fmt.Errorf("network id is not fould")
+	}
 	var response NetworkClientsResponse
-	err := e.do("GET", url, nil, &response)
+	err := e.do("GET", fmt.Sprintf("%s/clients", url), nil, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -154,17 +188,14 @@ func (e *EeroClient) VerifyKey(verificationKey string) error {
 // 	}
 // }
 
-func (e *EeroClient) do(method string, url EeroURL, reqObj interface{}, respObj interface{}) error {
+func (e *EeroClient) do(method string, url string, reqObj interface{}, respObj interface{}) error {
 
 	b := new(bytes.Buffer)
 	if reqObj != nil {
 		json.NewEncoder(b).Encode(reqObj)
 	}
-	// else {
-	// 	b = nil
-	// }
 
-	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", e.config.URL, url), b)
+	req, err := http.NewRequest(method, fmt.Sprintf("%s/%s", e.config.URL, url), b)
 	if err != nil {
 		return err
 	}
@@ -192,6 +223,5 @@ func (e *EeroClient) do(method string, url EeroURL, reqObj interface{}, respObj 
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

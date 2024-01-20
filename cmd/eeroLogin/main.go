@@ -54,13 +54,20 @@ func main() {
 	fmt.Printf("account: %v\n", account)
 	fmt.Printf("eeroclient: %v\n", eeroclient)
 
-	for url := range eeroclient.Cache.Networks {
-		network, err := eeroclient.Network(url)
+	for networkId := range eeroclient.Cache.Networks {
+		network, err := eeroclient.Network(networkId)
 		if err != nil {
 			panic(err)
 		}
-		j,_:= json.Marshal(network)
-		fmt.Printf("network: %s\n", string(j))
+		j, _ := json.Marshal(network)
+		fmt.Printf("network: %s\n\n", string(j))
+
+		clients, err := eeroclient.NetworkClients(networkId)
+		if err != nil {
+			panic(err)
+		}
+		j, _ = json.Marshal(clients)
+		fmt.Printf("clients: %s\n", string(j))
 	}
 
 }
