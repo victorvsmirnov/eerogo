@@ -18,35 +18,22 @@ func main() {
 	}
 	eeroclient := eerogo.NewEeroClient(configuration.Eero)
 
-	err = eeroclient.LoadCookie()
-	if err != nil {
-		err = eeroclient.Login()
-		if err != nil {
-			panic(err)
-		}
+	err = eeroclient.LoginSequence(func() (string, error) {
 		var verificatinoKey string
 		fmt.Printf("Enter verification key: ")
 		n, err := fmt.Scan(&verificatinoKey)
 		if err != nil {
-			panic(err)
+			return "", err
 		}
 		if n == 0 {
-			panic(fmt.Errorf("null input"))
+			return "", fmt.Errorf("null input")
 		}
-		eeroclient.VerifyKey(verificatinoKey)
-		if err != nil {
-			panic(err)
-		}
-		err = eeroclient.SaveCookie()
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		err = eeroclient.LoginRefresh()
-		if err != nil {
-			panic(err)
-		}
+		return verificatinoKey, nil
+	})
+	if err != nil {
+		panic(err)
 	}
+
 	account, err := eeroclient.Account()
 	if err != nil {
 		panic(err)
