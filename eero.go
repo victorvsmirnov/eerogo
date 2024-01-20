@@ -29,12 +29,6 @@ func NewEeroClient(c EeroConfiguration) *EeroClient {
 	}
 }
 
-type EeroConfiguration struct {
-	Login          string
-	CookieFileName string
-	URL            string // https://api-user.e2ro.com / https://api-user.e2ro.com/2.2/
-}
-
 type EeroClient struct {
 	httpClient      *http.Client
 	config          EeroConfiguration
