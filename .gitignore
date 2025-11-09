@@ -2,3 +2,4 @@ cmd/eeroLogin/.*
 .vscode/*
 networks.json
 clients.json
+.DS_Store
