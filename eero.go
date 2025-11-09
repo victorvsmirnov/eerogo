@@ -56,7 +56,7 @@ func (eeroclient *EeroClient) LoginSequence(verificationInputFunc func() (string
 			return err
 		}
 
-		eeroclient.VerifyKey(verificationKey)
+		err = eeroclient.VerifyKey(verificationKey)
 		if err != nil {
 			return err
 		}
